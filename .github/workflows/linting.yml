@@ -21,21 +21,24 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Install dependencies
         run: |
-          pip list
-          cd pelican
-          pip install -r requirements.txt --no-deps  # Explicit dependency-only installation
+          pip install -r requirements.txt --no-deps
           pip install mypy types-PyYAML types-requests types-beautifulsoup4 types-markdown pylint
-          pip list
 
       - name: Type testing with mypy
         run: |
-          cd pelican
-          mypy --cache-dir /tmp/ --install-types --non-interactive
-          mypy --cache-dir /tmp/ --ignore-missing-imports .
+          mypy --cache-dir /tmp/ --install-types --non-interactive pelican
+          mypy --cache-dir /tmp/ pelican
 
       - name: Code linting with pylint
         run: |
-          cd pelican
-          pylint **/*.py
+          pylint pelican/**/*.py
